@@ -1,18 +1,24 @@
-import { generateKeyPairSync } from 'crypto';
-import { CustomError, redis, redisRead, ResultCode } from './util';
+import { CustomError, ResultCode } from './util';
 import { v4 as uuidv4 } from 'uuid';
 import { z } from 'zod';
 import jwt from 'jsonwebtoken';
-import UserV2 from '../model/userv2';
+import Users from '../model/users';
 import dotenv from 'dotenv';
-import { issueTokenZod, issueTokenReturnZod, refreshTokenZod, refreshTokenReturnZod } from './zod/tokensZod';
+import { issueTokenPairZod, issueTokenPairReturnZod, refreshTokenPairZod, refreshTokenPairReturnZod } from './zod/tokensZod';
 dotenv.config();
 
-export const issueToken = async (inputs: z.infer<typeof issueTokenZod>): Promise<z.infer<typeof issueTokenReturnZod>> => {
-	const params = issueTokenZod.safeParse(inputs);
+export const issueTokenPair = async (inputs: z.infer<typeof issueTokenPairZod>): Promise<z.infer<typeof issueTokenPairReturnZod>> => {
+	const params = issueTokenPairZod.safeParse(inputs);
 	// @ts-ignore 
 	if (!params.success) throw new CustomError(400, ResultCode.InvalidArgument, `Invalid parameters: ${JSON.stringify(params.error.issues)}`);
-	let jwtbase = inputs as any;
+
+	const user = await Users.findOne({id: inputs.id, password: inputs.password}); // find user
+	if (!user) throw new CustomError(400, ResultCode.DataNotFound, 'user not found');
+
+	let jwtbase: any = {
+		id: user.id.toString(),
+	};
+
 	const refreshSecret = uuidv4();
 	const refreshJWT = {
 		secret: refreshSecret,
@@ -25,51 +31,30 @@ export const issueToken = async (inputs: z.infer<typeof issueTokenZod>): Promise
 	});
 	const aToken = jwt.sign(jwtbase, process.env.OLD_JWT_SECRET, {
 		expiresIn: '1d',
-		subject: `${inputs._id}`,
+		subject: `${inputs.id}`,
 		algorithm: 'HS256',
 	});
 
 	return { aToken, rToken };
 };
 
-export const refreshToken = async (inputs: z.infer<typeof refreshTokenZod>): Promise<z.infer<typeof postRefreshTokenReturnZod>> => {
-	const params = postRefreshTokenZod.safeParse(inputs);
+export const refreshTokenPair = async (inputs: z.infer<typeof refreshTokenPairZod>): Promise<z.infer<typeof refreshTokenPairReturnZod>> => {
+	const params = refreshTokenPairZod.safeParse(inputs);
 	// @ts-ignore
 	if (!params.success) throw new CustomError(400, ResultCode.InvalidArgument, `Invalid parameters: ${JSON.stringify(params.error.issues)}`);
 
-	let verifiedOldAToken;
 	let verifiedRToken;
 	const decodedAToken = jwt.decode(inputs.aToken, { complete: true });
-	if (decodedAToken.header.alg === 'HS256') {
-		
-		verifiedOldAToken = jwt.verify(inputs.aToken, process.env.OLD_JWT_SECRET);
-		verifiedRToken = jwt.verify(inputs?.rToken, process.env.OLD_JWT_SECRET); // refresh token
+	verifiedRToken = jwt.verify(inputs?.rToken, process.env.OLD_JWT_SECRET); // refresh token
+	const payloadOfDecodedAToken = decodedAToken.payload as jwt.JwtPayload;
 
-	} else if (decodedAToken.header.alg === 'ES256') {
+	if (new Date(verifiedRToken.exp * 1000) < new Date() || payloadOfDecodedAToken.refresh.secret !== verifiedRToken.secret)
+		throw new CustomError(400, ResultCode.InvalidKrRToken, 'invalid rToken');
 
-		const stringifiedPublicKeyArray = await redisRead.get('publicKeyArray');
-		const publicKeyArray = JSON.parse(stringifiedPublicKeyArray);
-		for (let i = 0; i < publicKeyArray.length; i++) {
-			try {
-				verifiedOldAToken = jwt.verify(inputs.aToken, publicKeyArray[i]);
-				break;
-			} catch (e) {
-				console.log(`failed to verify token with ${i}th public key`);
-			}
-		}	
-		verifiedRToken = jwt.verify(inputs?.rToken, process.env.REFRESH_PRIVATE_KEY); // refresh token
-
-	}
-
-	if (new Date(verifiedRToken.exp * 1000) < new Date() || verifiedOldAToken.refresh.secret !== verifiedRToken.secret)
-		throw new CustomError(400, ResultCode.InvalidKrRToken, 'invalid kr-rtoken');
-
-	const user = await UserV2.findById(verifiedOldAToken._id); // find user
-	const tokenObject = postIssueToken({
-		_id: user._id.toString(),
-		socialId: user.socialId,
-		userName: user.userName,
+	const user = await Users.findById(payloadOfDecodedAToken.id); // find user
+	const tokenPair = await issueTokenPair({
+		id: user.id.toString(),
 	});
 
-	return tokenObject;
+	return tokenPair;
 }

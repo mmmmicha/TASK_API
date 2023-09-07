@@ -1,18 +1,24 @@
 import mongoose, { Document } from 'mongoose';
 import dotenv from 'dotenv';
+import { convertDateToString } from '../biz/util';
 dotenv.config();
 
 export interface TasksInterface extends Document {
-    _id: number;
+    id: number;
     title: string;
     user_id: string;
     description: string;
     status: "pending" | "InProgress" | "Completed";
-    dueDate: string;
+    dueDate: Date;
+    isSended: boolean;
 }
 
 var TasksSchema = new mongoose.Schema(
     {
+        id: {
+            type: Number,
+            required: true,
+        },
         title: {
             type: String,
             required: true,
@@ -30,12 +36,27 @@ var TasksSchema = new mongoose.Schema(
             default: "pending",
         },
         dueDate: {
-            type: String,
+            type: Date,
+        },
+        isSended: {
+            type: Boolean,
+            default: false,
         },
     },
     { timestamps: true }
 );
 
-const Tasks = mongoose.connection.useDb(process.env.MONGO_DB_COLLECTION_PROD).model<TasksInterface>('Tasks', TasksSchema);
+const Tasks = mongoose.connection.useDb(process.env.MONGO_DB_DATABASE).model<TasksInterface>('Tasks', TasksSchema);
+
+TasksSchema.set('toJSON', {
+    transform: function (doc, ret, options) {
+        ret.dueDate = convertDateToString(ret.dueDate);
+        delete ret._id;
+        delete ret.__v;
+        delete ret.createdAt;
+        delete ret.updatedAt;
+        delete ret.isSended;
+    },
+});
 
 export default Tasks;

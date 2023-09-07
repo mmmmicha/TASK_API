@@ -8,17 +8,17 @@ import cors from 'cors';
 import helmet from 'helmet';
 
 import winston from 'winston';
+import indexRouter from './routes/index';
 import tasksRouter from './routes/tasksRouter';
+import tokensRouter from './routes/tokensRouter';
 import { responseGen } from './biz/util';
 
 import dotenv from 'dotenv';
 import mongoose from 'mongoose';
 import { CheckAuth } from './middleware/auth';
-import { errorLogger, requestLogger } from './middleware/logtail';
 dotenv.config();
 
 const server = async () => {
-    app.use(requestLogger);
     app.use(morgan('dev'));
 
     console.log('attempting to connect to mongodb');
@@ -40,25 +40,24 @@ const server = async () => {
     app.use(express.urlencoded({ extended: false }));
     app.use(cookieParser());
 
+    app.use('/', indexRouter);
     app.use('/tasks', CheckAuth, tasksRouter);
+    app.use('/tokens', tokensRouter);
 
     // catch 404 and forward to error handler
     app.get('*', async function (req, res) {
         return responseGen({
-            req: req,
             res: res,
             payload: '404 bipbop not found',
             httpCode: 404,
             msg: 'Page not found',
         });
     });
-    app.use(errorLogger);
     // error handler
     app.use(async function (err, req, res, next) {
         // set locals, only providing error in development
         res.locals.error = err;
         return responseGen({
-            req: req,
             res: res,
             payload: err,
             httpCode: 500,
