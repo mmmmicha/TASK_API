@@ -9,7 +9,8 @@ export const getTasksByUserIdReturnZod = z.object({
 	title: z.string(),
 	description: z.string(),
 	status: z.string(),
-	dueDate: z.date(),
+	dueDate: z.string(),
+	toURL: z.string(),
 }).array();
 
 export const getTaskByIdZod = z.object({
@@ -25,7 +26,8 @@ export const getTaskByIdReturnZod = z.object({
 	title: z.string(),
 	description: z.string(),
 	status: z.string(),
-	dueDate: z.date(),
+	dueDate: z.string(),
+	toURL: z.string(),
 });
 
 export const postTaskZod = z.object({
@@ -33,6 +35,7 @@ export const postTaskZod = z.object({
 	description: z.string(),
 	user_id: z.string(),
 	dueDate: z.string().transform((val) => new Date(val)),
+	toURL: z.string(),
 });
 
 export const postTaskReturnZod = z.object({
@@ -42,6 +45,7 @@ export const postTaskReturnZod = z.object({
 	user_id: z.string(),
 	status: z.string(),
 	dueDate: z.string(),
+	toURL: z.string(),
 });
 
 export const patchTaskZod = z.object({
@@ -50,15 +54,16 @@ export const patchTaskZod = z.object({
 	description: z.string().optional(),
 	status: z.string().optional(),
 	dueDate: z.date().optional(),
+	toURL: z.string().optional(),
 })
 .refine((data) => {
 	if (isNaN(Number(data.id))) return false;
 	return true;
 }, { message: 'id must be a number' })
 .refine((data) => {
-	if (data.status && (data.status !== 'pending' && data.status !== 'InProgress' && data.status !== 'Completed')) return false;
+	if (data.status && (data.status !== 'Pending' && data.status !== 'InProgress' && data.status !== 'Completed')) return false;
 	return true;
-}, { message: 'status must be one of pending, InProgress, Completed' });
+}, { message: 'status must be one of Pending, InProgress, Completed' });
 
 export const patchTaskReturnZod = z.object({
 	id: z.number(),
@@ -66,6 +71,7 @@ export const patchTaskReturnZod = z.object({
 	description: z.string(),
 	status: z.string(),
 	dueDate: z.date(),
+	toURL: z.string(),
 });
 
 export const deleteTaskZod = z.object({
@@ -82,4 +88,5 @@ export const deleteTaskReturnZod = z.object({
 	description: z.string(),
 	status: z.string(),
 	dueDate: z.date(),
+	toURL: z.string(),
 });

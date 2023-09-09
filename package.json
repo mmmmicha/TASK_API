@@ -1,6 +1,6 @@
 {
-  "name": "sesamelab.certification",
-  "version": "1.0.4",
+  "name": "recon-api",
+  "version": "1.0.0",
   "private": true,
   "scripts": {
     "start": "ts-node ./app",
@@ -20,7 +20,6 @@
     "express-winston": "^4.2.0",
     "helmet": "^6.0.1",
     "http-errors": "~1.6.3",
-    "ioredis": "^5.2.4",
     "jsonwebtoken": "^8.5.1",
     "mongoose": "^6.8.1",
     "morgan": "~1.9.1",

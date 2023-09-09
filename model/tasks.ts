@@ -8,9 +8,10 @@ export interface TasksInterface extends Document {
     title: string;
     user_id: string;
     description: string;
-    status: "pending" | "InProgress" | "Completed";
+    status: "Pending" | "InProgress" | "Completed";
     dueDate: Date;
     isSended: boolean;
+    toURL: string;
 }
 
 var TasksSchema = new mongoose.Schema(
@@ -32,8 +33,8 @@ var TasksSchema = new mongoose.Schema(
         },
         status: {
             type: String,
-            enum: ["pending", "InProgress", "Completed"],
-            default: "pending",
+            enum: ["Pending", "InProgress", "Completed"],
+            default: "Pending",
         },
         dueDate: {
             type: Date,
@@ -42,11 +43,14 @@ var TasksSchema = new mongoose.Schema(
             type: Boolean,
             default: false,
         },
+        toURL: {
+            type: String,
+        },
     },
     { timestamps: true }
 );
 
-const Tasks = mongoose.connection.useDb(process.env.MONGO_DB_DATABASE).model<TasksInterface>('Tasks', TasksSchema);
+const Tasks = mongoose.connection.useDb(process.env.MONGO_DB_DATABASE_RECONAPI).model<TasksInterface>('Tasks', TasksSchema);
 
 TasksSchema.set('toJSON', {
     transform: function (doc, ret, options) {

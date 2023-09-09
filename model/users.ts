@@ -25,6 +25,6 @@ var UsersSchema = new mongoose.Schema(
     { timestamps: true }
 );
 
-const Users = mongoose.connection.useDb(process.env.MONGO_DB_DATABASE).model<UsersInterface>('Users', UsersSchema);
+const Users = mongoose.connection.useDb(process.env.MONGO_DB_DATABASE_RECONAPI).model<UsersInterface>('Users', UsersSchema);
 
 export default Users;

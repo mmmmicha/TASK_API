@@ -13,7 +13,18 @@ export const getTasksByUserId = async (inputs: z.infer<typeof getTasksByUserIdZo
 
 	const tasks = await Tasks.find({ user_id: inputs.user_id }).lean() ?? [];
 
-	return tasks;
+	let result = tasks.map((task) => {
+		return {
+			id: task.id,
+			title: task.title,
+			description: task.description,
+			user_id: task.user_id,
+			status: task.status,
+			dueDate: convertDateToString(task.dueDate),
+			toURL: task.toURL,
+		};
+	});
+	return result;
 };
 
 export const getTaskById = async (inputs: z.infer<typeof getTaskByIdZod>) : Promise<z.infer<typeof getTaskByIdReturnZod>> => {
@@ -44,8 +55,9 @@ export const postTask = async (inputs: z.infer<typeof postTaskZod>) : Promise<z.
 		title: newTask.title,
 		description: newTask.description,
 		user_id: newTask.user_id,
-		status: 'pending',
+		status: 'Pending',
 		dueDate: convertDateToString(newTask.dueDate),
+		toURL: newTask.toURL,
 	};
 };
 

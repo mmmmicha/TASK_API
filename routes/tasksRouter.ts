@@ -1,10 +1,10 @@
-import express from 'express';
+import express, { Request, Response, NextFunction } from "express";
 import { getTaskById, getTasksByUserId, postTask, patchTask, deleteTask } from '../biz/tasksBiz';
 import { CustomError, ResultCode, responseGen } from '../biz/util';
 const router = express.Router();
 
 // 유저별 task 조회
-router.get('/user', async (req, res, next) => {
+router.get('/user', async (req: Request, res: Response, next: NextFunction) => {
 	try {
 		const params = {
 			user_id: req.token.id as string,
@@ -12,7 +12,7 @@ router.get('/user', async (req, res, next) => {
 		const result = await getTasksByUserId(params);
 		return responseGen({ res: res, payload: result, resultCode: ResultCode.OK, httpCode: 200, msg: 'ok', });
 	} catch (error) {
-		console.error('Error in GET /tasks/user' + error);
+		console.error(`Error in GET /tasks/user : ${error.msg}`);
 		if (error instanceof CustomError) {
 			return responseGen({ res, payload: error, resultCode: error.resultCode, httpCode: error.httpCode, msg: error.msg });
 		} else {
@@ -22,7 +22,7 @@ router.get('/user', async (req, res, next) => {
 });
 
 // 특정 task 조회
-router.get('/:id', async (req, res, next) => {
+router.get('/:id', async (req: Request, res: Response, next: NextFunction) => {
 	try {
 		const params = {
 			id: req.params.id,
@@ -30,7 +30,7 @@ router.get('/:id', async (req, res, next) => {
 		const result = await getTaskById(params);
 		return responseGen({ res: res, payload: result, resultCode: ResultCode.OK, httpCode: 200, msg: 'ok', });
 	} catch (error) {
-		console.error(`Error in GET /tasks/${req.params.id} ${error}`);
+		console.error(`Error in GET /tasks/${req.params.id} : ${error.msg}`);
 		if (error instanceof CustomError) {
 			return responseGen({ res, payload: error, resultCode: error.resultCode, httpCode: error.httpCode, msg: error.msg });
 		} else {
@@ -40,7 +40,7 @@ router.get('/:id', async (req, res, next) => {
 });
 
 // 새로운 task 등록
-router.post('/', async (req, res, next) => {
+router.post('/', async (req: Request, res: Response, next: NextFunction) => {
   	try {
 		const params = {
 			user_id: req.token.id as string,
@@ -49,7 +49,7 @@ router.post('/', async (req, res, next) => {
 		const result = await postTask(params);
 		return responseGen({ res: res, payload: result, resultCode: ResultCode.OK, httpCode: 200, msg: 'ok', });
 	} catch (error) {
-		console.error('Error in POST /tasks' + error);
+		console.error(`Error in POST /tasks : ${error.msg}`);
 		if (error instanceof CustomError) {
 			return responseGen({ res, payload: error, resultCode: error.resultCode, httpCode: error.httpCode, msg: error.msg });
 		} else {
@@ -59,7 +59,7 @@ router.post('/', async (req, res, next) => {
 });
 
 // 기존 task 수정(내용, 상태)
-router.patch('/:id', async (req, res, next) => {
+router.patch('/:id', async (req: Request, res: Response, next: NextFunction) => {
 	try {
 		const params = {
 			id: req.params.id,
@@ -68,7 +68,7 @@ router.patch('/:id', async (req, res, next) => {
 		const result = await patchTask(params);
 		return responseGen({ res: res, payload: result, resultCode: ResultCode.OK, httpCode: 200, msg: 'ok', });
 	} catch (error) {
-		console.error(`Error in PATCH /tasks/${req.params.id} ${error}`);
+		console.error(`Error in PATCH /tasks/${req.params.id} : ${error.msg}`);
 		if (error instanceof CustomError) {
 			return responseGen({ res, payload: error, resultCode: error.resultCode, httpCode: error.httpCode, msg: error.msg });
 		} else {
@@ -78,7 +78,7 @@ router.patch('/:id', async (req, res, next) => {
 });
 
 // task 삭제
-router.delete('/:id', async (req, res, next) => {
+router.delete('/:id', async (req: Request, res: Response, next: NextFunction) => {
 	try {
 		const params = {
 			id: req.params.id,
@@ -86,7 +86,7 @@ router.delete('/:id', async (req, res, next) => {
 		const result = await deleteTask(params);
 		return responseGen({ res: res, payload: result, resultCode: ResultCode.OK, httpCode: 200, msg: 'ok', });
 	} catch (error) {
-		console.error(`Error in DELETE /tasks/${req.params.id} ${error}`);
+		console.error(`Error in DELETE /tasks/${req.params.id} : ${error.msg}`);
 		if (error instanceof CustomError) {
 			return responseGen({ res, payload: error, resultCode: error.resultCode, httpCode: error.httpCode, msg: error.msg });
 		} else {

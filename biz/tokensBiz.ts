@@ -49,11 +49,14 @@ export const refreshTokenPair = async (inputs: z.infer<typeof refreshTokenPairZo
 	const payloadOfDecodedAToken = decodedAToken.payload as jwt.JwtPayload;
 
 	if (new Date(verifiedRToken.exp * 1000) < new Date() || payloadOfDecodedAToken.refresh.secret !== verifiedRToken.secret)
-		throw new CustomError(400, ResultCode.InvalidKrRToken, 'invalid rToken');
+		throw new CustomError(400, ResultCode.InvalidRefreshToken, 'invalid rToken');
 
-	const user = await Users.findById(payloadOfDecodedAToken.id); // find user
+		const user = await Users.findOne({ id: payloadOfDecodedAToken.id }); // find user
+	if (!user) throw new CustomError(400, ResultCode.DataNotFound, 'user not found');
+
 	const tokenPair = await issueTokenPair({
 		id: user.id.toString(),
+		password: user.password,
 	});
 
 	return tokenPair;

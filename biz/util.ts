@@ -6,25 +6,10 @@ export enum ResultCode {
 	OK = 1,
 	AlreadyExists = -1,
 	InvalidArgument = -2,
-	ExpiredData = -3,
-	IncorrectData = -4,
-	InvalidData = -5,
-	InvalidKey = -6,
-	InvalidOperation = -7,
-	LastMemberInDoorLock = -8,
-	DataNotFound = -9,
-	Offline = -10,
-	OutOfRange = -11,
-	PermissionDenied = -12,
-	Timeout = -13,
-	NotInTime = -30,
-	InvalidKrPin = -1001,
-	InvalidAccessToken = -1002,
-	InvalidKrWallet = -1003,
-	InvalidKrRelayToken = -1004,
-	InvalidSocialToken = -1005,
-	InvalidKrRToken = -1006,
-	InvalidAppVer = -1007,
+	InvalidOperation = -3,
+	DataNotFound = -4,
+	PermissionDenied = -5,
+	InvalidRefreshToken = -6,
 }
 
 export class CustomError {
@@ -36,10 +21,6 @@ export class CustomError {
 		this.resultCode = resultCode;
 		this.msg = msg;
 	}
-}
-
-export interface LoggedRequest extends Request {
-	locals: any;
 }
 
 export interface responseGenInterface {
